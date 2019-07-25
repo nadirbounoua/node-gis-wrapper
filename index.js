@@ -20,8 +20,8 @@ function EXPA(username, password, enforceSSL){
 	var tokenRequest = function(){
 		var deferred = q();
 		
-		r.get('https://experience.aiesec.org/auth', (error, response, body) => {
-			var match = body.match('<meta.*content="(.*)".*name="csrf-token"');
+		r.get('https://auth.aiesec.org/users/sign_in', (error, response, body) => {
+			var match = body.match('<meta name="csrf-token" content="(.*?)" \/\>');
 
 			r.post({
 				url: 'https://auth.aiesec.org/users/sign_in',
@@ -52,9 +52,11 @@ function EXPA(username, password, enforceSSL){
 	 _.getNewToken = function() {
 		return tokenRequest().then((response) => {
 	 		var cookie = response.req._headers.cookie;
-	 		var token = cookie.match('expa_token=(.*)')[1].replace(/;.*/, '');
+	 		var cookie_decoded = decodeURIComponent(cookie);
+	 		var token = cookie_decoded.replace('aiesec_token=', '');
+	 		token = JSON.parse(token);
 	 		_token = token;
-	 		return token;
+	 		return token.token.access_token;
 	 	});
 	};
 
